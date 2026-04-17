@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechX Sentiment Analysis</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --surface: rgba(255, 251, 245, 0.9);
+      --surface-strong: #fffdf8;
+      --ink: #172121;
+      --muted: #5d6a6a;
+      --line: rgba(23, 33, 33, 0.12);
+      --accent: #d9653b;
+      --accent-deep: #9f3d1e;
+      --positive: #177245;
+      --negative: #9c2f2f;
+      --neutral: #875f00;
+      --shadow: 0 20px 60px rgba(90, 59, 40, 0.15);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(217, 101, 59, 0.18), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(23, 114, 69, 0.12), transparent 28%),
+        linear-gradient(135deg, #efe5d8 0%, #f8f3ec 45%, #ece5db 100%);
+    }
+
+    .page {
+      width: min(1100px, calc(100% - 32px));
+      margin: 32px auto;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -60px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(217, 101, 59, 0.1);
+      filter: blur(8px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      color: var(--accent-deep);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2.6rem, 4vw, 4.6rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      max-width: 9ch;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 46ch;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .stats {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(23, 33, 33, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.25rem;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .workspace {
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(23, 33, 33, 0.06);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface-strong);
+      color: var(--ink);
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1.6;
+      padding: 18px 20px;
+      transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: rgba(217, 101, 59, 0.55);
+      box-shadow: 0 0 0 4px rgba(217, 101, 59, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+      transform: none;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #e07b47 100%);
+      color: #fffaf5;
+      box-shadow: 0 12px 24px rgba(217, 101, 59, 0.2);
+    }
+
+    .secondary {
+      background: rgba(23, 33, 33, 0.06);
+      color: var(--ink);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 33, 33, 0.08);
+    }
+
+    .card-label {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card-value {
+      margin: 0;
+      font-size: 1.6rem;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    .sentiment-positive {
+      color: var(--positive);
+    }
+
+    .sentiment-negative {
+      color: var(--negative);
+    }
+
+    .sentiment-neutral {
+      color: var(--neutral);
+    }
+
+    .message {
+      min-height: 24px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .message.error {
+      color: var(--negative);
+    }
+
+    .message.success {
+      color: var(--positive);
+    }
+
+    .samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sample {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(23, 33, 33, 0.1);
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--ink);
+    }
+
+    .sample:hover {
+      box-shadow: 0 8px 16px rgba(23, 33, 33, 0.08);
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .workspace {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        max-width: none;
+        font-size: clamp(2.3rem, 12vw, 3.5rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="panel hero">
+      <div class="eyebrow">TechX</div>
+      <h1>Read the tone behind the text.</h1>
+    </section>
+
+    <section class="panel workspace">
+      <div class="section-title">
+        <h2>Sentiment Console</h2>
+        <span id="healthBadge" class="badge">Checking API...</span>
+      </div>
+
+      <label for="textInput" class="footer-note">Enter product feedback, a sentence, or a short paragraph to analyze.</label>
+      <textarea id="textInput" placeholder="Example: The new dashboard is simple, fast, and much easier to use."></textarea>
+
+      <div class="actions">
+        <button id="analyzeButton" class="primary" type="button">Analyze sentiment</button>
+        <button id="clearButton" class="secondary" type="button">Clear</button>
+        <button id="healthButton" class="secondary" type="button">Recheck health</button>
+      </div>
+
+      <p id="message" class="message" aria-live="polite"></p>
+
+      <div class="grid">
+        <article class="card">
+          <p class="card-label">Sentiment</p>
+          <p id="sentimentValue" class="card-value">Waiting for input</p>
+        </article>
+        <article class="card">
+          <p class="card-label">Polarity</p>
+          <p id="polarityValue" class="card-value">--</p>
+        </article>
+        <article class="card">
+          <p class="card-label">Subjectivity</p>
+          <p id="subjectivityValue" class="card-value">--</p>
+        </article>
+        <article class="card">
+          <p class="card-label">Echoed text</p>
+          <p id="textValue" class="card-value" style="font-size: 1.05rem; line-height: 1.5;">--</p>
+        </article>
+      </div>
+
+      <div>
+        <p class="card-label" style="margin-bottom: 12px;">Quick samples</p>
+        <div class="samples">
+          <button class="sample" type="button" data-sample="I love how smooth and reliable this update feels.">Positive sample</button>
+          <button class="sample" type="button" data-sample="The app keeps crashing and it is frustrating to use.">Negative sample</button>
+          <button class="sample" type="button" data-sample="I tried the new version yesterday and it has a different layout.">Neutral sample</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const textInput = document.getElementById("textInput");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const clearButton = document.getElementById("clearButton");
+    const healthButton = document.getElementById("healthButton");
+    const healthBadge = document.getElementById("healthBadge");
+    const message = document.getElementById("message");
+    const sentimentValue = document.getElementById("sentimentValue");
+    const polarityValue = document.getElementById("polarityValue");
+    const subjectivityValue = document.getElementById("subjectivityValue");
+    const textValue = document.getElementById("textValue");
+
+    function setLoading(isLoading) {
+      analyzeButton.disabled = isLoading;
+      analyzeButton.textContent = isLoading ? "Analyzing..." : "Analyze sentiment";
+    }
+
+    function setMessage(text, type = "") {
+      message.textContent = text;
+      message.className = type ? `message ${type}` : "message";
+    }
+
+    function resetResults() {
+      sentimentValue.textContent = "Waiting for input";
+      sentimentValue.className = "card-value";
+      polarityValue.textContent = "--";
+      subjectivityValue.textContent = "--";
+      textValue.textContent = "--";
+    }
+
+    function applySentimentStyle(sentiment) {
+      const styleMap = {
+        Positive: "sentiment-positive",
+        Negative: "sentiment-negative",
+        Neutral: "sentiment-neutral",
+      };
+
+      sentimentValue.className = `card-value ${styleMap[sentiment] || ""}`.trim();
+    }
+
+    async function checkHealth() {
+      healthBadge.textContent = "Checking API...";
+      try {
+        const response = await fetch("/health");
+        if (!response.ok) {
+          throw new Error(`Health check failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        healthBadge.textContent = data.status === "ok" ? "API healthy" : "API responded";
+      } catch (error) {
+        healthBadge.textContent = "API unavailable";
+        setMessage(error.message, "error");
+      }
+    }
+
+    async function analyzeText() {
+      setLoading(true);
+      setMessage("");
+
+      try {
+        const response = await fetch("/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: textInput.value }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const errorDetail = typeof data.detail === "string" ? data.detail : "Request failed.";
+          throw new Error(errorDetail);
+        }
+
+        sentimentValue.textContent = data.sentiment;
+        polarityValue.textContent = Number(data.polarity).toFixed(4);
+        subjectivityValue.textContent = Number(data.subjectivity).toFixed(4);
+        textValue.textContent = data.text;
+        applySentimentStyle(data.sentiment);
+        setMessage("Sentiment analyzed successfully.", "success");
+      } catch (error) {
+        resetResults();
+        setMessage(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    analyzeButton.addEventListener("click", analyzeText);
+
+    clearButton.addEventListener("click", () => {
+      textInput.value = "";
+      resetResults();
+      setMessage("");
+      textInput.focus();
+    });
+
+    healthButton.addEventListener("click", checkHealth);
+
+    textInput.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        analyzeText();
+      }
+    });
+
+    document.querySelectorAll("[data-sample]").forEach((button) => {
+      button.addEventListener("click", () => {
+        textInput.value = button.dataset.sample || "";
+        analyzeText();
+      });
+    });
+
+    resetResults();
+    checkHealth();
+  </script>
+</body>
+</html>

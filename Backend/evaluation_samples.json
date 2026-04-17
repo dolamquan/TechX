@@ -1,0 +1,50 @@
+[
+  {
+    "text": "The app is incredibly smooth and saves me time every day.",
+    "expected": "Positive"
+  },
+  {
+    "text": "I love how simple and reliable this tool feels.",
+    "expected": "Positive"
+  },
+  {
+    "text": "Customer support was helpful and solved my issue quickly.",
+    "expected": "Positive"
+  },
+  {
+    "text": "The update made the dashboard clearer and easier to use.",
+    "expected": "Positive"
+  },
+  {
+    "text": "The service was painfully slow and frustrating to use.",
+    "expected": "Negative"
+  },
+  {
+    "text": "I regret buying this because it breaks all the time.",
+    "expected": "Negative"
+  },
+  {
+    "text": "This is the worst experience I have had with a product this year.",
+    "expected": "Negative"
+  },
+  {
+    "text": "The interface is confusing and the bugs make it unusable.",
+    "expected": "Negative"
+  },
+  {
+    "text": "The meeting is scheduled for 3 PM tomorrow.",
+    "expected": "Neutral"
+  },
+  {
+    "text": "The package arrived on Tuesday in a cardboard box.",
+    "expected": "Neutral"
+  },
+  {
+    "text": "The phone comes with a charger and a printed manual.",
+    "expected": "Neutral"
+  },
+  {
+    "text": "I tried the new version yesterday and it has a different layout.",
+    "expected": "Neutral"
+  }
+]
