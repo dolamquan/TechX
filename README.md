@@ -1,60 +1,75 @@
-# TechX AI Engineering Basics: Sentiment Analysis Mini Project
+# TechX Sentiment Analysis
 
-This project is a small FastAPI backend that accepts text input and returns a sentiment label:
+TechX is a small sentiment analysis project with:
 
-- `Positive`
-- `Negative`
-- `Neutral`
+- a FastAPI backend
+- a browser-based frontend served by the API
+- two sentiment implementations for comparison:
+  `Hugging Face Transformers` for the live API and `TextBlob` for baseline evaluation
+- evaluation scripts and basic backend tests
 
-It uses `TextBlob` as the NLP library and includes:
+The API classifies text as `Positive`, `Negative`, or `Neutral`.
 
-- basic validation for empty and non-string input
-- a `/analyze` API endpoint
-- a `/health` API endpoint
-- a browser frontend served from `/`
-- a 12-sentence evaluation script
-- a short analysis of likely incorrect or uncertain predictions
+## Current Behavior
+
+- `GET /` serves the frontend from `Frontend/frontend.html`
+- `GET /health` returns a simple health check
+- `POST /analyze` uses the Hugging Face model in [Backend/app/sentiment_hf.py](/c:/Users/jackd/OneDrive/Documents/Projects/Techx/Backend/app/sentiment_hf.py)
+- the response currently returns:
+  `text`, `sentiment`, `score`, `model`, `polarity`, and `subjectivity`
+- `polarity` and `subjectivity` are currently `null` in the API response because the live endpoint is not using the TextBlob analyzer
 
 ## Project Structure
 
 ```text
-.
-|-- app/
-|   |-- main.py
-|   `-- sentiment.py
-|-- tests/
-|   `-- test_sentiment.py
-|-- evaluation_samples.json
-|-- requirements.txt
-|-- run_evaluation.py
-`-- README.md
+Techx/
+|-- Backend/
+|   |-- app/
+|   |   |-- __init__.py
+|   |   |-- main.py
+|   |   |-- sentiment.py
+|   |   `-- sentiment_hf.py
+|   |-- tests/
+|   |   |-- conftest.py
+|   |   |-- test_api.py
+|   |   `-- test_sentiment.py
+|   |-- evaluation_samples.json
+|   |-- requirements.txt
+|   |-- run_evaluation_hf.py
+|   |-- run_evaluation_textblob.py
+|   `-- sentiment_evaluation.ipynb
+|-- Frontend/
+|   `-- frontend.html
+|-- README.md
+`-- REPORT.md
 ```
 
 ## Setup
 
+From the repo root:
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-python -m pip install -r requirements.txt
+python -m pip install -r Backend\requirements.txt
+python -m pip install transformers torch
 ```
+
+`transformers` and `torch` are needed for the Hugging Face model used by the live API.
 
 ## Run the API
 
+From the repo root:
+
 ```bash
-uvicorn app.main:app --reload
+uvicorn Backend.app.main:app --reload
 ```
 
-Open the interactive docs at:
+Open:
 
-```text
-http://127.0.0.1:8000/docs
-```
-
-Open the frontend at:
-
-```text
-http://127.0.0.1:8000/
-```
+- App: `http://127.0.0.1:8000/`
+- Docs: `http://127.0.0.1:8000/docs`
+- Health: `http://127.0.0.1:8000/health`
 
 ## Example Request
 
@@ -70,23 +85,55 @@ curl -X POST "http://127.0.0.1:8000/analyze" ^
 {
   "text": "The product works really well and I enjoy using it.",
   "sentiment": "Positive",
-  "polarity": 0.85,
-  "subjectivity": 0.7
+  "score": 0.9876,
+  "model": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+  "polarity": null,
+  "subjectivity": null
 }
 ```
 
-## Evaluate on 12 Sentences
+## Evaluation Scripts
+
+Run these from the `Backend` directory:
 
 ```bash
-python run_evaluation.py
+cd Backend
+python run_evaluation_hf.py
+python run_evaluation_textblob.py
 ```
 
-## Notes on Incorrect or Uncertain Predictions
+- `run_evaluation_hf.py` evaluates the Hugging Face model used by the API
+- `run_evaluation_textblob.py` evaluates the TextBlob baseline analyzer
+- both scripts use `evaluation_samples.json`
 
-1. `"I tried the new version yesterday and it has a different layout."`
-   This sentence is intended to be neutral, but a lexicon-based model may treat `"different"` as weakly opinionated depending on context and produce a slightly non-neutral score.
+## Tests
 
-2. `"The update made the dashboard clearer and easier to use."`
-   This should be positive, but if the model does not strongly weight `"clearer"` or `"easier"`, the polarity may land close to neutral and become uncertain.
+From the `Backend` directory:
 
-These edge cases show a common limitation of simple sentiment tools: they rely on word-level polarity and do not fully understand product context, tone, or implied meaning.
+```bash
+pytest
+```
+
+## Sentiment Implementations
+
+### Hugging Face
+
+The live API uses `cardiffnlp/twitter-roberta-base-sentiment-latest` through the `transformers` pipeline in [Backend/app/sentiment_hf.py](/c:/Users/jackd/OneDrive/Documents/Projects/Techx/Backend/app/sentiment_hf.py).
+
+### TextBlob
+
+The baseline analyzer in [Backend/app/sentiment.py](/c:/Users/jackd/OneDrive/Documents/Projects/Techx/Backend/app/sentiment.py) uses polarity thresholds:
+
+- polarity `> 0.2` -> `Positive`
+- polarity `< -0.2` -> `Negative`
+- otherwise -> `Neutral`
+
+## Sample Evaluation Set
+
+The evaluation file contains 12 labeled examples:
+
+- 4 positive
+- 4 negative
+- 4 neutral
+
+These are useful for quick regression checks while comparing the Hugging Face and TextBlob approaches.
