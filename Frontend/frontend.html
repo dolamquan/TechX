@@ -342,14 +342,14 @@
           <p class="card-label">Sentiment</p>
           <p id="sentimentValue" class="card-value">Waiting for input</p>
         </article>
-        <article class="card">
+        <!-- <article class="card">
           <p class="card-label">Polarity</p>
           <p id="polarityValue" class="card-value">--</p>
         </article>
         <article class="card">
           <p class="card-label">Subjectivity</p>
           <p id="subjectivityValue" class="card-value">--</p>
-        </article>
+        </article> -->
         <article class="card">
           <p class="card-label">Echoed text</p>
           <p id="textValue" class="card-value" style="font-size: 1.05rem; line-height: 1.5;">--</p>
@@ -392,8 +392,8 @@
     function resetResults() {
       sentimentValue.textContent = "Waiting for input";
       sentimentValue.className = "card-value";
-      polarityValue.textContent = "--";
-      subjectivityValue.textContent = "--";
+      // polarityValue.textContent = "--";
+      // subjectivityValue.textContent = "--";
       textValue.textContent = "--";
     }
 
@@ -444,8 +444,8 @@
         }
 
         sentimentValue.textContent = data.sentiment;
-        polarityValue.textContent = Number(data.polarity).toFixed(4);
-        subjectivityValue.textContent = Number(data.subjectivity).toFixed(4);
+        // polarityValue.textContent = Number(data.polarity).toFixed(4);
+        // subjectivityValue.textContent = Number(data.subjectivity).toFixed(4);
         textValue.textContent = data.text;
         applySentimentStyle(data.sentiment);
         setMessage("Sentiment analyzed successfully.", "success");

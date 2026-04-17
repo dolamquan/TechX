@@ -45,6 +45,8 @@ def analyze(request: SentimentRequest) -> dict[str, Any]:
     return {
         "text": request.text,
         "sentiment": result["label"],
-        "polarity": result["polarity"],
-        "subjectivity": result["subjectivity"],
+        "score": result["score"],
+        "model": result["model"],
+        "polarity": None,
+        "subjectivity": None,
     }
